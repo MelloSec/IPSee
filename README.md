@@ -1,7 +1,7 @@
 # IPSee
 
 ## Does IP Lookups with Geolocation data, for checking exit nodes, detonating malware and scoping out sketchy IPs
-## Cross-Platform with PowerShell Core
+## Cross-Platform 
 ---
 ### Run IPSee.ps1 to get your machine's/site's current public IP address and grab information about it:
 
