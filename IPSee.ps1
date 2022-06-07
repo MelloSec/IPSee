@@ -16,7 +16,7 @@ function Get-IPInfo {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [string]$ip = $ipaddr
+        [string]$ip
     )
     $IPObject = Invoke-RestMethod -Method Get -Uri "https://ipapi.co/$ip/json"
 
