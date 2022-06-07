@@ -8,7 +8,8 @@
 
 ### Which Bergen?! 
 
-###After that, the function 'Get-IpInfo' will take any public address, for example:
+
+### After that, the function 'Get-IpInfo' will take any public address, for example:
 
 ![image](https://user-images.githubusercontent.com/65114647/172463512-9fdf3dec-b26e-42f3-a02b-d10f9a767dcd.png)
 
