@@ -24,3 +24,10 @@ function Get-IPInfo {
     }
 }
 Get-IPInfo $ip
+
+function get-nslookup
+{
+    nslookup .
+}
+get-nslookup
+# If local IP, use regular, llmnr only and AD DNS lookup
