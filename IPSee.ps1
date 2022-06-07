@@ -16,7 +16,7 @@ function Get-IPInfo {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [string]$ip
+        [string]$ip = $ipaddr
     )
     $IPObject = Invoke-RestMethod -Method Get -Uri "https://ipapi.co/$ip/json"
 
@@ -24,19 +24,12 @@ function Get-IPInfo {
         IP        =  $IPObject.IP
         City      =  $IPObject.City
         Country   =  $IPObject.Country_Name
-        Code      =  $IPObject.Country_Code
-        Location  =  $IPObject.Latitude
-        Longitude =  $IPObject.Longitude
+        Region    =  $IPObject.Region
+        Postal    =  $IPObject.Postal
         TimeZone  =  $IPObject.TimeZone
+        ASN       =  $IPObject.asn
+        Owner     =  $IPObject.org
     }
 }
 Get-IPInfo $ip
 
-
-
-
-# function get-nslookup
-# {
-#     nslookup $myip
-# }
-# get-nslookup
