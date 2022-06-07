@@ -23,3 +23,14 @@ function Get-IPInfo {
     }
 }
 Get-IPInfo $ip
+
+
+
+# if(!($ip = $myip){nslookup "$ip"})
+#    else
+# function get-nslookup
+# {
+#     nslookup $myip
+# }
+# get-nslookup
+# If local IP, use regular, llmnr only and AD DNS lookup
