@@ -2,7 +2,7 @@
 
 ## Does IP Lookups with Geolocation data, for checking exit nodes, detonating malware and scoping out sketchy IPs
 ---
-### Run IPSee.ps1 to get your current IP address and grab information about it:
+### Run IPSee.ps1 to get your machine's/site's current public IP address and grab information about it:
 
 ![image](https://user-images.githubusercontent.com/65114647/172465426-94d0205a-960c-4166-8145-2ec68e27067d.png)
 
