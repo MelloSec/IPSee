@@ -4,10 +4,9 @@
 
 # Checks your current IP
 function Get-MyIp {
-    Invoke-WebRequest "http://ifconfig.me/ip"
+    Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
 }
-$myip = Get-MyIp
-$ip = $myip.Content.ToString()
+$ip = Get-MyIp
 
 # Makes GET request the ipapi.com API to retrieve selected information about the IP address and store it in a CustomObject
 # By default this uses your public IP from above
@@ -18,7 +17,7 @@ function Get-IPInfo {
         [Parameter(Mandatory)]
         [string]$ip
     )
-    $IPObject = Invoke-RestMethod -Method Get -Uri "https://ipapi.co/$ip/json"
+    $IPObject = Invoke-RestMethod -Method GET -Uri "https://ipapi.co/$ip/json"
 
     [PSCustomObject]@{
         IP        =  $IPObject.IP
