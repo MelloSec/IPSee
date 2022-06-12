@@ -2,12 +2,9 @@
 =========
 ### MelloSec
 
-<<<<<<< HEAD
+
 IP Lookup with Reputation and Optional Url Scan
-=======
 
-
-IP Information and Reputation lookup tool
 
 
 Run the script to get your current Public IP as well as information about the address
@@ -15,4 +12,3 @@ Run the script to get your current Public IP as well as information about the ad
 
 Can also pass any public IP to the Get-IPInfo function and get the same
 ![image](https://user-images.githubusercontent.com/65114647/173103693-9d2d0091-3746-469f-a706-3991041d01c0.png)
->>>>>>> f53da3dbddde278ade3d0b73afe9a2600acd559f
