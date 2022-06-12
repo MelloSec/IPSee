@@ -62,5 +62,29 @@
             Sensors             =  $IPObject.sensors
         }
     }
-    Check-NeutrinoBlocklist $ip $userId $apiKey
+    $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey | Write-Output
+
+
+
+    function Check-NeutrinoUrlInfo {
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory)]
+            [string]$url,
+            [Parameter(Mandatory)]
+            [string]$userId,
+            [Parameter(Mandatory)]
+            [string]$apiKey
+        )
+        $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
+    }
+    $URLObject = Check-NeutrinoUrlInfo $url $userId $apiKey | Write-Output
+
+
+
+
+
 # } Un-Comment main function when ready to build parameters and switch
+
+# That SANS API had some cool granular stuff we could do if we get something bad
+# We could feed in lists of IPs check reputation then do more thorough lookups, add to a database and alert
