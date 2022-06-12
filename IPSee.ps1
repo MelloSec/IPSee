@@ -73,8 +73,8 @@
         )
         $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
     }
-    $URLCheck = Check-NeutrinoUrlInfo $url $userId $apiKey
-    $URLCheck
+    # $URLCheck = Check-NeutrinoUrlInfo $url $userId $apiKey
+    # $URLCheck
 
 
     # Checks your current IP
