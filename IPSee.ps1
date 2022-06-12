@@ -1,10 +1,5 @@
 # function Invoke-IPSee {
-    # Checks your current IP
-    # Could we make this a switch, so that you either want to look up your own IP first? If not, then we go on to just do a lookup on whatever IP was passed
-    function Get-MyIp {
-        Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
-    }
-    $ip = Get-MyIp
+
 
     # Makes GET request the ipapi.com API to retrieve selected information about the IP address and store it in a CustomObject
     # By default this uses your public IP from above
@@ -83,7 +78,12 @@
     $URLCheck
 
 
-
+    # Checks your current IP
+    # Could we make this a switch, so that you either want to look up your own IP first? If not, then we go on to just do a lookup on whatever IP was passed
+    function Get-MyIp {
+        Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
+    }
+    $ip = Get-MyIp
 
 
 # } Un-Comment main function when ready to build parameters and switch
