@@ -59,7 +59,14 @@
     $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey
     $BlockList
 
-
+    function Get-ReverseIP {
+        param (
+            [Parameter(Mandatory)]
+            [string]$ip
+        )
+        $URLObject = Invoke-RestMethod -Method GET -Uri "https://api.hackertarget.com/reverseiplookup/?q=151.101.194.159"
+    }
+    $domains = Get-ReverseIP $ip
 
     function Check-NeutrinoUrlInfo {
         [CmdletBinding()]
