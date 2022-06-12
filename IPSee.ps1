@@ -83,6 +83,9 @@
         Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
     }
     $myip = Get-MyIp
+    $myinfo = Get-IPInfo $myip
+    Write-Output "Your current exit node:" ($myinfo | Format-List)
+    # End
 
 
 # } Un-Comment main function when ready to build parameters and switch
