@@ -44,23 +44,49 @@
 
         [PSCustomObject]@{
 
-            Ip                  =  $IPObject.ip
-            CIDR                =  $IPObject.cidr
-            IsListed            =  $IPObject.is-listed
-            IsHijacked          =  $IPObject.is-hijacked
-            IsSpider            =  $IPObject.is-spider
-            IsTor               =  $IPObject.is-tor
-            IsProxy             =  $IPObject.is-proxy
-            IsMalware           =  $IPObject.is-malware
-            IsVpn               =  $IPObject.is-vpn
-            IsBot               =  $IPObject.is-bot
-            IsSpamBot           =  $IPObject.is-spam-bot
-            IsExploitBot        =  $IPObject.is-exploit-bot
-            ListCount           =  $IPObject.list-count
-            Blocklists          =  $IPObject.blocklists
-            LastSeen            =  $IPObject.last-seen
-            Sensors             =  $IPObject.sensors
+            Ip                  =  $IPObject."ip"
+            CIDR                =  $IPObject."cidr"
+            IsListed            =  $IPObject."is-listed"
+            IsHijacked          =  $IPObject."is-hijacked"
+            IsSpider            =  $IPObject."is-spider"
+            IsTor               =  $IPObject."is-tor"
+            IsProxy             =  $IPObject."is-proxy"
+            IsMalware           =  $IPObject."is-malware"
+            IsVpn               =  $IPObject."is-vpn"
+            IsBot               =  $IPObject."is-bot"
+            IsSpamBot           =  $IPObject."is-spam-bot"
+            IsExploitBot        =  $IPObject."is-exploit-bot"
+            ListCount           =  $IPObject."list-count"
+            Blocklists          =  $IPObject."blocklists"
+            LastSeen            =  $IPObject."last-seen"
+            Sensors             =  $IPObject."sensors"
         }
     }
-    Check-NeutrinoBlocklist $ip $userId $apiKey
+    $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey
+    $BlockList
+
+
+
+    function Check-NeutrinoUrlInfo {
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory)]
+            [string]$url,
+            [Parameter(Mandatory)]
+            [string]$userId,
+            [Parameter(Mandatory)]
+            [string]$apiKey
+        )
+        $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
+    }
+    $URLCheck = Check-NeutrinoUrlInfo $url $userId $apiKey
+    $URLCheck
+
+
+
+
+
 # } Un-Comment main function when ready to build parameters and switch
+
+# That SANS API had some cool granular stuff we could do if we get something bad
+# We could feed in lists of IPs check reputation then do more thorough lookups, add to a database and alert
