@@ -64,7 +64,3 @@
     }
     Check-NeutrinoBlocklist $ip $userId $apiKey
 # } Un-Comment main function when ready to build parameters and switch
-
-# Use Neutrino API to check reputation of the IP
-
-# Check out that Void API that basically does what you want to do, but free is limited. His is separated into smaller APIs maybe we can use both of them
