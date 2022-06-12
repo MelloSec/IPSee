@@ -39,7 +39,6 @@
 
         [PSCustomObject]@{
 
-            Ip                  =  $IPObject."ip"
             CIDR                =  $IPObject."cidr"
             IsListed            =  $IPObject."is-listed"
             IsHijacked          =  $IPObject."is-hijacked"
@@ -83,7 +82,7 @@
     function Get-MyIp {
         Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
     }
-    $ip = Get-MyIp
+    $myip = Get-MyIp
 
 
 # } Un-Comment main function when ready to build parameters and switch
