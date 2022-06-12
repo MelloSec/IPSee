@@ -62,7 +62,8 @@
             Sensors             =  $IPObject."sensors"
         }
     }
-    $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey | Write-Output
+    $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey
+    $BlockList
 
 
 
@@ -78,7 +79,8 @@
         )
         $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
     }
-    $URLObject = Check-NeutrinoUrlInfo $url $userId $apiKey | Write-Output
+    $URLCheck = Check-NeutrinoUrlInfo $url $userId $apiKey
+    $URLCheck
 
 
 
