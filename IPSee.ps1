@@ -3,6 +3,7 @@
 # A tool I made to check your exit node / do IP lookups when playing with malware
 
 # Checks your current IP
+# Could we make this a switch, so that you either want to look up your own IP first? If not, then we go on to just do a lookup on whatever IP was passed
 function Get-MyIp {
     Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
 }
@@ -34,3 +35,5 @@ Get-IPInfo $ip
 
 
 # Use Neutrino API to check reputation of the IP
+
+# Check out that Void API that basically does what you want to do, but free is limited. His is separated into smaller APIs maybe we can use both of them
