@@ -31,4 +31,3 @@ function Get-IPInfo {
     }
 }
 Get-IPInfo $ip
-
