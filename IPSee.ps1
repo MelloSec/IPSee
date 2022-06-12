@@ -31,3 +31,6 @@ function Get-IPInfo {
     }
 }
 Get-IPInfo $ip
+
+
+# Use Neutrino API to check reputation of the IP
