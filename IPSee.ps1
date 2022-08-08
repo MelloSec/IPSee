@@ -85,17 +85,10 @@
 
 
     # Checks your current IP
-    # Could we make this a switch, so that you either want to look up your own IP first? If not, then we go on to just do a lookup on whatever IP was passed
+
     function Get-MyIp {
         Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
     }
     $myip = Get-MyIp
     $myinfo = Get-IPInfo $myip
     Write-Output "Your current exit node:" ($myinfo | Format-List)
-    # End
-
-
-# } Un-Comment main function when ready to build parameters and switch
-
-# That SANS API had some cool granular stuff we could do if we get something bad
-# We could feed in lists of IPs check reputation then do more thorough lookups, add to a database and alert
