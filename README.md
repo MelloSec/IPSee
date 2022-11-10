@@ -2,9 +2,12 @@
 =========
 ### MelloSec
 
-Simple IP Lookup with Reputation and Optional Url Scan. Has a Get-MyIp function.
+Simple IP Lookup with Reputation and Optional Url Scan
+Requires a free Neutrino API key for optional BlockList and detailed lookups.
 
-Requires a free Neutrino API key for optional BlockList and detailed lookups. 
+Can run the script with an argument of an IP address, or by itself. 
+
+Can be imported as a module with Import-Module, giving you access to its functions on the command line:
 
 Get Information about an IP Address. Will get your own if run with no options.
 
