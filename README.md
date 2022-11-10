@@ -4,7 +4,7 @@
 
 Simple IP Lookup with Reputation and Optional Url Scan. Has a Get-MyIp function.
 
-Requires a free Neutrino API key for the BlockList and Url lookups. 
+Requires a free Neutrino API key for optional BlockList and detailed lookups. 
 
 Could use a sketchier IP:
 
