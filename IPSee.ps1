@@ -1,15 +1,23 @@
-# function Invoke-IPSee {
 
 
     # Makes GET request the ipapi.com API to retrieve selected information about the IP address and store it in a CustomObject
     # By default this uses your public IP from above
     # You can also pass any IP address to this function and retrieve the same information.
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$ip
+    )
+
+    $list = Get-Content ips.txt
+
+    # if ($list) {
+    #     $ip = $list
+    # } else {
+    #     $ip = $ip
+    # }
+
     function Get-IPInfo {
-        [CmdletBinding()]
-        param (
-            [Parameter(Mandatory)]
-            [string]$ip
-        )
         $IPObject = Invoke-RestMethod -Method GET -Uri "https://ipapi.co/$ip/json"
 
         [PSCustomObject]@{
@@ -56,30 +64,32 @@
             Sensors             =  $IPObject."sensors"
         }
     }
-    $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey
-    $BlockList
+    # $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey
+    # $BlockList
+
+    # function Check-NeutrinoUrlInfo {
+    #     [CmdletBinding()]
+    #     param (
+    #         [Parameter(Mandatory)]
+    #         [string]$url,
+    #         [Parameter(Mandatory)]
+    #         [string]$userId,
+    #         [Parameter(Mandatory)]
+    #         [string]$apiKey
+    #     )
+    #     $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
+    # }
 
     function Get-ReverseIP {
         param (
             [Parameter(Mandatory)]
             [string]$ip
         )
-        $URLObject = Invoke-RestMethod -Method GET -Uri "https://api.hackertarget.com/reverseiplookup/?q=151.101.194.159"
+        $URLObject = Invoke-RestMethod -Method GET -Uri "https://api.hackertarget.com/reverseiplookup/?q=$ip"
     }
     $domains = Get-ReverseIP $ip
 
-    function Check-NeutrinoUrlInfo {
-        [CmdletBinding()]
-        param (
-            [Parameter(Mandatory)]
-            [string]$url,
-            [Parameter(Mandatory)]
-            [string]$userId,
-            [Parameter(Mandatory)]
-            [string]$apiKey
-        )
-        $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
-    }
+
     # $URLCheck = Check-NeutrinoUrlInfo $url $userId $apiKey
     # $URLCheck
 
