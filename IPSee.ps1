@@ -1,104 +1,108 @@
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory=$false)]
+    [string]$ip,
+    [Parameter(Mandatory=$false)]
+    [string]$shodanKey,
+    [Parameter(Mandatory=$false)]
+    [string]$neutrinoUser,
+    [Parameter(Mandatory=$false)]
+    [string]$neutrinoKey,
+    [Parameter(Mandatory=$false)]
+    [string]$inputFile
+)
 
 
-    # Makes GET request the ipapi.com API to retrieve selected information about the IP address and store it in a CustomObject
-    # By default this uses your public IP from above
-    # You can also pass any IP address to this function and retrieve the same information.
-    [CmdletBinding()]
+
+
+# Now, if the -inputFile parameter is used, the script will read the IP addresses from the file, store them in an array, and loop through the array to call the necessary functions for each IP address.
+
+# Note that the foreach loop in the -ip branch is redundant since there will only be one IP address in the array. However, I left it in there to keep the code consistent.
+
+
+function Get-IPInfo {
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
         [string]$ip
     )
 
-    $list = Get-Content ips.txt
+    $IPObject = Invoke-RestMethod -Method GET -Uri "https://ipapi.co/$ip/json"
 
-    # if ($list) {
-    #     $ip = $list
-    # } else {
-    #     $ip = $ip
-    # }
+    [PSCustomObject]@{
+        IP        =  $IPObject.IP
+        City      =  $IPObject.City
+        Country   =  $IPObject.Country_Name
+        Region    =  $IPObject.Region
+        Postal    =  $IPObject.Postal
+        TimeZone  =  $IPObject.TimeZone
+        ASN       =  $IPObject.asn
+        Owner     =  $IPObject.org
+    }
+}
 
-    function Get-IPInfo {
-        $IPObject = Invoke-RestMethod -Method GET -Uri "https://ipapi.co/$ip/json"
+function Check-NeutrinoBlocklist($ip, $userId, $apiKey) {
+    $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-blocklist?user-id=$userId&api-key=$apiKey&ip=$ip"
 
-        [PSCustomObject]@{
-            IP        =  $IPObject.IP
-            City      =  $IPObject.City
-            Country   =  $IPObject.Country_Name
-            Region    =  $IPObject.Region
-            Postal    =  $IPObject.Postal
-            TimeZone  =  $IPObject.TimeZone
-            ASN       =  $IPObject.asn
-            Owner     =  $IPObject.org
+    [PSCustomObject]@{
+        CIDR                =  $IPObject."cidr"
+        IsListed            =  $IPObject."is-listed"
+        IsHijacked          =  $IPObject."is-hijacked"
+        IsSpider            =  $IPObject."is-spider"
+        IsTor               =  $IPObject."is-tor"
+        IsProxy             =  $IPObject."is-proxy"
+        IsMalware           =  $IPObject."is-malware"
+        IsVpn               =  $IPObject."is-vpn"
+        IsBot               =  $IPObject."is-bot"
+        IsSpamBot           =  $IPObject."is-spam-bot"
+        IsExploitBot        =  $IPObject."is-exploit-bot"
+        ListCount           =  $IPObject."list-count"
+        Blocklists          =  $IPObject."blocklists"
+        LastSeen            =  $IPObject."last-seen"
+        Sensors             =  $IPObject."sensors"
+    }
+}
+
+if ($inputFile) {
+    $ips = Get-Content $inputFile
+
+    foreach ($ip in $ips) {
+        Write-Host "Checking IP: $ip"
+
+        $ipInfo = Get-IPInfo $ip
+        Write-Host "IP information:"
+        $ipInfo | Format-List
+
+        if ($neutrinoKey -and $neutrinoUser) {
+            $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
+            Write-Host "Neutrino IP blocklist information:"
+            $neutrinoInfo | Format-List
         }
+
+
+        # Add more functionality here as needed
     }
-    Get-IPInfo $ip
+} elseif ($ip) {
+    # If -ip parameter was used
+    $ips = @($ip)
 
-    function Check-NeutrinoBlocklist {
-        [CmdletBinding()]
-        param (
-            [Parameter(Mandatory)]
-            [string]$ip,
-            [Parameter(Mandatory)]
-            [string]$userId,
-            [Parameter(Mandatory)]
-            [string]$apiKey
-        )
-        $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-blocklist?user-id=$userId&api-key=$apiKey&ip=$ip"
+    foreach ($ip in $ips) {
+        Write-Host "Checking IP: $ip"
 
-        [PSCustomObject]@{
+        $ipInfo = Get-IPInfo $ip
+        Write-Host "IP information:"
+        $ipInfo | Format-List
 
-            CIDR                =  $IPObject."cidr"
-            IsListed            =  $IPObject."is-listed"
-            IsHijacked          =  $IPObject."is-hijacked"
-            IsSpider            =  $IPObject."is-spider"
-            IsTor               =  $IPObject."is-tor"
-            IsProxy             =  $IPObject."is-proxy"
-            IsMalware           =  $IPObject."is-malware"
-            IsVpn               =  $IPObject."is-vpn"
-            IsBot               =  $IPObject."is-bot"
-            IsSpamBot           =  $IPObject."is-spam-bot"
-            IsExploitBot        =  $IPObject."is-exploit-bot"
-            ListCount           =  $IPObject."list-count"
-            Blocklists          =  $IPObject."blocklists"
-            LastSeen            =  $IPObject."last-seen"
-            Sensors             =  $IPObject."sensors"
+        if ($neutrinoKey -and $neutrinoUser) {
+            $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
+            Write-Host "Neutrino IP blocklist information:"
+            $neutrinoInfo | Format-List
         }
+
+
+        # Add more functionality here as needed
     }
-    # $BlockList = Check-NeutrinoBlocklist $ip $userId $apiKey
-    # $BlockList
+} else {
+    Write-Error "Either -ip or -inputFile parameter must be specified."
+    return
+}
 
-    # function Check-NeutrinoUrlInfo {
-    #     [CmdletBinding()]
-    #     param (
-    #         [Parameter(Mandatory)]
-    #         [string]$url,
-    #         [Parameter(Mandatory)]
-    #         [string]$userId,
-    #         [Parameter(Mandatory)]
-    #         [string]$apiKey
-    #     )
-    #     $URLObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/url-info?user-id=$userid&api-key=$apiKey&url=$url"
-    # }
-
-    function Get-ReverseIP {
-        param (
-            [Parameter(Mandatory)]
-            [string]$ip
-        )
-        $URLObject = Invoke-RestMethod -Method GET -Uri "https://api.hackertarget.com/reverseiplookup/?q=$ip"
-    }
-    $domains = Get-ReverseIP $ip
-
-
-    # $URLCheck = Check-NeutrinoUrlInfo $url $userId $apiKey
-    # $URLCheck
-
-
-    # Checks your current IP
-
-    function Get-MyIp {
-        Invoke-RestMethod -Method GET -Uri "http://ifconfig.me/ip"
-    }
-    $myip = Get-MyIp
-    $myinfo = Get-IPInfo $myip
-    Write-Output "Your current exit node:" ($myinfo | Format-List)
