@@ -304,7 +304,9 @@ if ($Shodan) {
         }
     }
     if ([string]::IsNullOrEmpty($shodanKey)) {
-        $shodanKey = Read-Host -Prompt "Enter your Shodan API key" -AsSecureString
+        $shodanKey = Read-Host -Prompt "Enter your Shodan API key" #-AsSecureString
+      # $shodanKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($shodanKey))
+
     }
 }
 
@@ -321,14 +323,19 @@ if ($VT) {
         }
     }
     if ([string]::IsNullOrEmpty($vtKey)) {
-        $vtKey = Read-Host -Prompt "Enter your VirusTotal API key" -AsSecureString
+        $vtKey = Read-Host -Prompt "Enter your VirusTotal API key" # -AsSecureString
+       #  $vtKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($vtKey))
     }
 }
 
 if ($Neutrino) {
-    if ([string]::IsNullOrEmpty($neutrinoKey)) {
-        $neutrinoKey = Read-Host -Prompt "Enter your Neutrino API key" -AsSecureString
+    if ([string]::IsNullOrEmpty($neutrinoUser)) {
+        $neutrinoUser = Read-Host -Prompt "Enter your username"
     }
+    if ([string]::IsNullOrEmpty($neutrinoKey)) {
+        $neutrinoKey = Read-Host -Prompt "Enter your Neutrino API key" # -AsSecureString
+       #  $neutrinoKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($neutrinoKey))
+    }   
 }
 
 
@@ -359,14 +366,27 @@ if ($ip) {
 elseif ($domain) {
     Write-Output "Performing domain-related lookups for domain $domain"
     # Domain related logic
-    Write-Output "Grabbing IP address(es) associated with $domain from Shodan"
-    Get-ShodanDNSResolve -domain $domain -API $shodanKey
-    Write-Output "Gathering all subdomains and dns entries for specified domain on Shodan"
-    $shodanDNS = Get-ShodanDNSdomain -domain $domain -API $shodanKey  
-    $shodanDNS | Format-List
-    Write-Output "Checking domain reputation on Virus Total"
-    $vtDNS = Get-VirusDomainReport -vtkey $vtKey -domain $domain
+     if ($Neutrino) { 
+        Write-Host "Checking neutrino domain information"
+        $neutrinoDomain = Check-NeutrinoDomain $domain $neutrinoUser $neutrinoKey
+        $neutrinoDomain | Format-List
+        }
+     if ($Shodan) {
+        Write-Output "Grabbing IP address(es) associated with $domain from Shodan"
+        Get-ShodanDNSResolve -domain $domain -API $shodanKey
+        Write-Output "Gathering all subdomains and dns entries for specified domain on Shodan"
+        $shodanDNS = Get-ShodanDNSdomain -domain $domain -API $shodanKey  
+        $shodanDNS | Format-List
+        }
+
+    if ($VT){
+        Write-Output "Checking domain reputation on Virus Total"
+        $vtDNS = Get-VirusDomainReport -vtkey $vtKey -domain $domain
+        $vtDNs | Format-List
+    }
 }
+
+
 elseif ($inputFile) {
     Write-Output "Performing input file-related lookups for file $inputFile"
     # Input file related logic

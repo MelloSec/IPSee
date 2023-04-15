@@ -26,10 +26,12 @@ param (
 # Install-Module -Name Get-VirusIPReport
 # Install-Module -Name Get-VirusDomainReport
 
+# Import-Module -Name Get-ShodanDNSResolve
+# Install-Module -Name Get-ShodanDNSReverse
 # Import-Module -Name Get-ShodanDNSDomain
 # Import-Module -Name Get-VirusIPReport
 # Import-Module -Name Get-VirusDomainReport
-# Import-Module -Name Get-ShodanDNSResolve
+
 
 function Show-Help {
     $scriptName = $MyInvocation.MyCommand.Name
