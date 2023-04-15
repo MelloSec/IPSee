@@ -64,3 +64,7 @@ Can also get your current public IP.
 Get-MyIp
 
 ![image](https://user-images.githubusercontent.com/65114647/173103528-ed3c3532-3ce5-48d1-b302-88729254e237.png)
+
+Check Neutrino blocklist and do a Real-Time IP check:
+    
+![image](https://user-images.githubusercontent.com/65114647/232242704-07221f0f-6482-4392-8435-16bd905d8f18.png)
