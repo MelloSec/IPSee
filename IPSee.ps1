@@ -12,14 +12,6 @@ param (
     [string]$inputFile
 )
 
-
-
-
-# Now, if the -inputFile parameter is used, the script will read the IP addresses from the file, store them in an array, and loop through the array to call the necessary functions for each IP address.
-
-# Note that the foreach loop in the -ip branch is redundant since there will only be one IP address in the array. However, I left it in there to keep the code consistent.
-
-
 function Get-IPInfo {
     param (
         [Parameter(Mandatory=$true)]
@@ -78,7 +70,6 @@ if ($inputFile) {
             $neutrinoInfo | Format-List
         }
 
-
         # Add more functionality here as needed
     }
 } elseif ($ip) {
@@ -97,12 +88,54 @@ if ($inputFile) {
             Write-Host "Neutrino IP blocklist information:"
             $neutrinoInfo | Format-List
         }
-
-
-        # Add more functionality here as needed
-    }
+    # Add more functionality here as needed
+}
 } else {
-    Write-Error "Either -ip or -inputFile parameter must be specified."
-    return
+function Get-MyIp {
+    Invoke-WebRequest "http://ifconfig.me/ip"
+}
+$myip = Get-MyIp
+$myinfo = Get-IPInfo $myip
+Write-Output "Your current exit node:" ($myinfo | Format-List)
+}
+
+function Show-Help {
+$scriptName = $MyInvocation.MyCommand.Name
+Write-Host "Usage: $scriptName [-ip <IP address>] [-shodanKey <API key>] [-neutrinoUser <username>] [-neutrinoKey <API key>] [-inputFile <path>]"
+Write-Host ""
+Write-Host "Retrieves information about an IP address, including city, country, region, postal code, time zone, ASN, and owner."
+Write-Host ""
+Write-Host "Optional parameters:"
+Write-Host "-ip <IP address>      The IP address to check."
+Write-Host "-shodanKey <API key>  The API key for the Shodan service. (Not implemented yet)"
+Write-Host "-neutrinoUser <username>   The username for the Neutrino service."
+Write-Host "-neutrinoKey <API key> The API key for the Neutrino service."
+Write-Host "-inputFile <path>     The path to a file containing a list of IP addresses to check."
+Write-Host ""
+}
+
+if ($ip) {
+$ips = @($ip)
+} elseif ($inputFile) {
+$ips = Get-Content $inputFile
+} else {
+Show-Help
+return
+}
+
+foreach ($ip in $ips) {
+Write-Host "Checking IP: $ip"
+
+$ipInfo = Get-IPInfo $ip
+Write-Host "IP information:"
+$ipInfo | Format-List
+
+if ($neutrinoKey -and $neutrinoUser) {
+    $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
+    Write-Host "Neutrino IP blocklist information:"
+    $neutrinoInfo | Format-List
+}
+
+# Add more functionality here as needed
 }
 
