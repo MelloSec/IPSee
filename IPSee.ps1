@@ -9,8 +9,40 @@ param (
     [Parameter(Mandatory=$false)]
     [string]$neutrinoKey,
     [Parameter(Mandatory=$false)]
-    [string]$inputFile
+    [string]$inputFile,
+    [Parameter(Mandatory=$false)]
+    [string]$domain.
+    [Parameter(Mandatory=$false)]
+    [switch]$Shodan
+
 )
+
+Install-Module -Name Get-ShodanAPIInfo
+Install-Module -Name Get-ShodanDNSDomain
+Install-Module -Name Get-ShodanDNSResolve
+Install-Module -Name Get-ShodanDNSReverse
+Install-Module -Name Get-VirusIPReport
+Install-Module -Name Get-VirusDomainReport
+
+Import-Module -Name Get-ShodanDNSDomain
+Import-Module -Name Get-VirusIPReport
+Import-Module -Name Get-VirusDomainReport
+
+function Show-Help {
+    $scriptName = $MyInvocation.MyCommand.Name
+    Write-Host "Usage: $scriptName [-ip <IP address>] [-shodanKey <API key>] [-neutrinoUser <username>] [-neutrinoKey <API key>] [-inputFile <path>]"
+    Write-Host ""
+    Write-Host "Retrieves information about an IP address, including city, country, region, postal code, time zone, ASN, and owner."
+    Write-Host ""
+    Write-Host "Optional parameters:"
+    Write-Host "-ip <IP address>      The IP address to check."
+    Write-Host "-shodanKey <API key>  The API key for the Shodan service. (Not implemented yet)"
+    Write-Host "-neutrinoUser <username>   The username for the Neutrino service."
+    Write-Host "-neutrinoKey <API key> The API key for the Neutrino service."
+    Write-Host "-inputFile <path>     The path to a file containing a list of IP addresses to check."
+    Write-Host ""
+    }
+
 
 function Get-IPInfo {
     param (
@@ -54,6 +86,77 @@ function Check-NeutrinoBlocklist($ip, $userId, $apiKey) {
     }
 }
 
+function Check-NeutrinoRealtime($ip, $userId, $apiKey) {
+    $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-probe?user-id=$userId&api-key=$apiKey&ip=$ip"
+
+    [PSCustomObject]@{
+        ip                  =  $IPObject.ip
+        valid               =  $IPObject.valid
+        isV6                =  $IPObject.{"is-v6"}
+        isV4Mapped          =  $IPObject.{"is-v4-mapped"}
+        isBogon             =  $IPObject.{"is-bogon"}
+        country             =  $IPObject.country
+        countryCode         =  $IPObject.{"country-code"}
+        countryCode3        =  $IPObject.{"country-code3"}
+        continentCode       =  $IPObject.{"continent-code"}
+        currencyCode        =  $IPObject.{"currency-code"}
+        city                =  $IPObject.city
+        region              =  $IPObject.region
+        regionCode          =  $IPObject.{"region-code"}
+        hostname            =  $IPObject.hostname
+        hostDomain          =  $IPObject.{"host-domain"}
+        providerDomain      =  $IPObject.{"provider-domain"}
+        providerWebsite     =  $IPObject.{"provider-website"}
+        providerDescription =  $IPObject.{"provider-description"}
+        providerType        =  $IPObject.{"provider-type"}
+        isHosting           =  $IPObject.{"is-hosting"}
+        isIsp               =  $IPObject.{"is-isp"}
+        isVpn               =  $IPObject.{"is-vpn"}
+        isProxy             =  $IPObject.{"is-proxy"}
+        vpnDomain           =  $IPObject.{"vpn-domain"}
+        asn                 =  $IPObject.asn
+        asCidr              =  $IPObject.{"as-cidr"}
+        asCountryCode       =  $IPObject.{"as-country-code"}
+        asCountryCode3      =  $IPObject.{"as-country-code3"}
+        asDomains           =  $IPObject.{"as-domains"}
+        asDescription       =  $IPObject.{"as-description"}
+        asAge               =  $IPObject.{"as-age"}
+    }
+}
+
+function Check-NeutrinoDomain($domain, $userId, $apiKey) {
+    $DomainObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.com/api/domain-lookup?user-id=$userId&api-key=$apiKey&domain=$domain"
+
+    [PSCustomObject]@{
+        valid               =  $DomainObject.valid
+        fqdn                =  $DomainObject.fqdn
+        domain              =  $DomainObject.domain
+        isSubdomain         =  $DomainObject.{"is-subdomain"}
+        tld                 =  $DomainObject.tld
+        tldCc               =  $DomainObject.{"tld-cc"}
+        rank                =  $DomainObject.rank
+        isGov               =  $DomainObject.{"is-gov"}
+        isOpennic           =  $DomainObject.{"is-opennic"}
+        isPending           =  $DomainObject.{"is-pending"}
+        isAdult             =  $DomainObject.{"is-adult"}
+        isMalicious         =  $DomainObject.{"is-malicious"}
+        blocklists          =  $DomainObject.blocklists
+        sensors             =  $DomainObject.sensors | ForEach-Object {
+            [PSCustomObject]@{
+                id              =  $_.id
+                blocklist       =  $_.blocklist
+                description     =  $_.description
+                registeredDate  =  $_.{"registered-date"}
+                age             =  $_.age
+            }
+        }
+        registrarName       =  $DomainObject.{"registrar-name"}
+        registrarId         =  $DomainObject.{"registrar-id"}
+        dnsProvider         =  $DomainObject.{"dns-provider"}
+        mailProvider        =  $DomainObject.{"mail-provider"}
+    }
+}
+
 if ($inputFile) {
     $ips = Get-Content $inputFile
 
@@ -68,9 +171,11 @@ if ($inputFile) {
             $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
             Write-Host "Neutrino IP blocklist information:"
             $neutrinoInfo | Format-List
+            $neutrinoRealtime = Check-NeutrinoRealtime $ip $neutrinoUser $neutrinoKey
+            $neutrinoRealtime | Format-Table
         }
 
-        # Add more functionality here as needed
+        if ($shodanKey)
     }
 } elseif ($ip) {
     # If -ip parameter was used
@@ -84,58 +189,46 @@ if ($inputFile) {
         $ipInfo | Format-List
 
         if ($neutrinoKey -and $neutrinoUser) {
-            $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
+            $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey            
             Write-Host "Neutrino IP blocklist information:"
             $neutrinoInfo | Format-List
+            $neutrinoRealtime = Check-NeutrinoRealtime $ip $neutrinoUser $neutrinoKey
+            Write-Host "Neutrino Real-time IP scan"
+            $neutrinoRealtime | Format-List
         }
+
+        if ($Shodan) {
+            if (!$shodanKey) {
+                $shodanKey = Read-Host "Enter Shodan API key" -AsSecureString | ConvertFrom-SecureString
+            }
+        }
+        
     # Add more functionality here as needed
+} elseif ($domain) {
+    
+    # Neutrino
+    Write-Host "Checking neutrino domain information"
+    $neutrinoDomain = Check-NeutrinoDomain $domain $neutrinoUser $neutrinoKey
+    $neutrinoDomain | Format-List
+
+    # Shodan
+    if (!$shodanKey) {
+        $shodanKey = Read-Host "Enter Shodan API key" -AsSecureString | ConvertFrom-SecureString
+    }
+    Write-Output "Grabbing IP address(es) associated with $domain"
+    Get-ShodanDNSdomain -domain $domain -API $shodanKey
+    Write-Output "Gathering all subdomains and dns entries for specified domain on Shodan"
+    $shodanDNS = Get-ShodanDNSdomain -domain $domain -API $shodanKey  
+    $shodanDNS | Format-List
 }
 } else {
 function Get-MyIp {
     Invoke-WebRequest "http://ifconfig.me/ip"
 }
+Show-Help
 $myip = Get-MyIp
 $myinfo = Get-IPInfo $myip
-Write-Output "Your current exit node:" ($myinfo | Format-List)
+Write-Output "Your current public IP:" ($myinfo | Format-List)
 }
 
-function Show-Help {
-$scriptName = $MyInvocation.MyCommand.Name
-Write-Host "Usage: $scriptName [-ip <IP address>] [-shodanKey <API key>] [-neutrinoUser <username>] [-neutrinoKey <API key>] [-inputFile <path>]"
-Write-Host ""
-Write-Host "Retrieves information about an IP address, including city, country, region, postal code, time zone, ASN, and owner."
-Write-Host ""
-Write-Host "Optional parameters:"
-Write-Host "-ip <IP address>      The IP address to check."
-Write-Host "-shodanKey <API key>  The API key for the Shodan service. (Not implemented yet)"
-Write-Host "-neutrinoUser <username>   The username for the Neutrino service."
-Write-Host "-neutrinoKey <API key> The API key for the Neutrino service."
-Write-Host "-inputFile <path>     The path to a file containing a list of IP addresses to check."
-Write-Host ""
-}
-
-if ($ip) {
-$ips = @($ip)
-} elseif ($inputFile) {
-$ips = Get-Content $inputFile
-} else {
-Show-Help
-return
-}
-
-foreach ($ip in $ips) {
-Write-Host "Checking IP: $ip"
-
-$ipInfo = Get-IPInfo $ip
-Write-Host "IP information:"
-$ipInfo | Format-List
-
-if ($neutrinoKey -and $neutrinoUser) {
-    $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
-    Write-Host "Neutrino IP blocklist information:"
-    $neutrinoInfo | Format-List
-}
-
-# Add more functionality here as needed
-}
 
