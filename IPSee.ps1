@@ -11,9 +11,11 @@ param (
     [Parameter(Mandatory=$false)]
     [string]$inputFile,
     [Parameter(Mandatory=$false)]
-    [string]$domain.
+    [string]$domain,
     [Parameter(Mandatory=$false)]
-    [switch]$Shodan
+    [switch]$Shodan,
+    [Parameter(Mandatory=$false)]
+    [switch]$vtKey
 
 )
 
@@ -27,6 +29,7 @@ Install-Module -Name Get-VirusDomainReport
 Import-Module -Name Get-ShodanDNSDomain
 Import-Module -Name Get-VirusIPReport
 Import-Module -Name Get-VirusDomainReport
+Import-Module -Name Get-ShodanDNSResolve
 
 function Show-Help {
     $scriptName = $MyInvocation.MyCommand.Name
@@ -64,8 +67,8 @@ function Get-IPInfo {
     }
 }
 
-function Check-NeutrinoBlocklist($ip, $userId, $apiKey) {
-    $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-blocklist?user-id=$userId&api-key=$apiKey&ip=$ip"
+function Check-NeutrinoBlocklist($ip, $userId, $vtKeyKey) {
+    $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-blocklist?user-id=$userId&api-key=$vtKeyKey&ip=$ip"
 
     [PSCustomObject]@{
         CIDR                =  $IPObject."cidr"
@@ -86,8 +89,8 @@ function Check-NeutrinoBlocklist($ip, $userId, $apiKey) {
     }
 }
 
-function Check-NeutrinoRealtime($ip, $userId, $apiKey) {
-    $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-probe?user-id=$userId&api-key=$apiKey&ip=$ip"
+function Check-NeutrinoRealtime($ip, $userId, $vtKeyKey) {
+    $IPObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.net/ip-probe?user-id=$userId&api-key=$vtKeyKey&ip=$ip"
 
     [PSCustomObject]@{
         ip                  =  $IPObject.ip
@@ -124,8 +127,8 @@ function Check-NeutrinoRealtime($ip, $userId, $apiKey) {
     }
 }
 
-function Check-NeutrinoDomain($domain, $userId, $apiKey) {
-    $DomainObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.com/api/domain-lookup?user-id=$userId&api-key=$apiKey&domain=$domain"
+function Check-NeutrinoDomain($domain, $userId, $vtKeyKey) {
+    $DomainObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.com/api/domain-lookup?user-id=$userId&api-key=$vtKeyKey&domain=$domain"
 
     [PSCustomObject]@{
         valid               =  $DomainObject.valid
@@ -157,6 +160,79 @@ function Check-NeutrinoDomain($domain, $userId, $apiKey) {
     }
 }
 
+function Get-VirusDomainReport {
+    param(
+    [string]$domain,
+    [string]$vtKey
+    )
+    If (!$vtKey){
+        Write-Host "Please provide your api key Ex. Get-VirusDomainReport -api {string} -domain {string}"
+    }Else {
+        If (!$domain){
+        Write-Host "Please provide a domain. Ex: Get-VirusDomainReport -api {string} -domain {string}"
+        }Else {
+            #Use Resource ID to pull the scan results
+            $scanoutputuri="https://www.virustotal.com/vtapi/v2/domain/report?apikey=$vtKey&domain=$domain"
+            $scanoutput=((Invoke-WebRequest -Uri $scanoutputuri).content | ConvertFrom-Json)
+            
+            $operainfo=($scanoutput)."Opera domain info"
+            $bitdefenderinfo=($scanoutput)."BitDefender domain info"
+            $alexainfo=($scanoutput)."Alexa domain info"
+            $forcepointcategory=($scanoutput)."Forcepoint ThreatSeeker category"
+            $wotinfo=(($scanoutput)."WOT domain info" -Split {$_ -eq ";"} | ConvertFrom-String -Delimiter "=")
+            #$subdomains=(($scanoutput).subdomains).Split(" ",[System.StringSplitOptions]::RemoveEmptyEntries)
+            #$undetectedurls=(Write-Host ($scanoutput).undetected_urls | ConvertFrom-StringData -Delimiter ",")
+            #$whois=($scanoutput).whois
+    
+            Write-Host "Domain Report for $domain"
+            Write-Host "Opera Info: $operainfo"
+            Write-Host "BitDefender Info: $bitdefenderinfo"
+            Write-Host "Alexa Info: $alexainfo"
+            Write-Host "ForcePoint Category: $forcepointcategory"
+            Write-Host "WOT Info: $wotinfo"
+            Write-Host "Domain WHOIS:"
+            ($scanoutput).whois
+            #Write-Host "Subdomains:"
+            #(($scanoutput).subdomains).Split(" ",[System.StringSplitOptions]::RemoveEmptyEntries)
+            #Write-Host "Undetected URLs:"
+            #(Write-Host ($scanoutput).undetected_urls | ConvertFrom-StringData -Delimiter ",")
+        }
+    }
+    }
+    # For IP
+    function Get-VirusDomain {
+        param(
+        [string]$ip,
+        [string]$vtKey
+        )
+        If (!$vtKey){
+            Write-Host "Please provide your api key Ex. Get-VirusDomain -api {string} -ip {string}"
+        }Else {
+            If (!$ip){
+            Write-Host "Please provide a domain. Ex: Get-VirusDomain -api {string} -ip {string}"
+            }Else {
+                #Use Resource ID to pull the scan results
+                $scanoutputuri="https://www.virustotal.com/vtapi/v2/ip-address/report?apikey=$vtKey&ip=$ip"
+                $scanoutput=((Invoke-WebRequest -Uri $scanoutputuri).content | ConvertFrom-Json)
+                
+                $asn=($scanoutput).asn
+                $asownder=($scanoutput).as_owner
+                $country=($scanoutput).country
+                $responsecode=($scanoutput).response_code
+        
+                Write-Host "ASN: $asn"
+                Write-Host "ASN Owner: $asownder"
+                Write-Host "Country of Origin: $country"
+                Write-Host "Response Code: $responsecode"
+        
+            }
+        }
+        }
+
+
+
+
+# Logic
 if ($inputFile) {
     $ips = Get-Content $inputFile
 
@@ -175,7 +251,7 @@ if ($inputFile) {
             $neutrinoRealtime | Format-Table
         }
 
-        if ($shodanKey)
+        # if ($virusTotal)
     }
 } elseif ($ip) {
     # If -ip parameter was used
@@ -200,8 +276,12 @@ if ($inputFile) {
         if ($Shodan) {
             if (!$shodanKey) {
                 $shodanKey = Read-Host "Enter Shodan API key" -AsSecureString | ConvertFrom-SecureString
+                Write-Output "Lookup hostnames associated with IP on Shodan"
+                Get-ShodanDNSReverse -ips $ip -API $shodanKey
             }
         }
+
+        Get-VirusDomain -api $vtKey -ip $ip
         
     # Add more functionality here as needed
 } elseif ($domain) {
@@ -216,10 +296,11 @@ if ($inputFile) {
         $shodanKey = Read-Host "Enter Shodan API key" -AsSecureString | ConvertFrom-SecureString
     }
     Write-Output "Grabbing IP address(es) associated with $domain"
-    Get-ShodanDNSdomain -domain $domain -API $shodanKey
+    Get-ShodanDNSResolve -domain $domain -API $shodanKey
     Write-Output "Gathering all subdomains and dns entries for specified domain on Shodan"
     $shodanDNS = Get-ShodanDNSdomain -domain $domain -API $shodanKey  
     $shodanDNS | Format-List
+    $vtDNS = Get-VirusDomainReport -api $vtKey -domain $domain
 }
 } else {
 function Get-MyIp {
