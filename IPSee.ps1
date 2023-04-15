@@ -19,17 +19,17 @@ param (
 
 )
 
-Install-Module -Name Get-ShodanAPIInfo
-Install-Module -Name Get-ShodanDNSDomain
-Install-Module -Name Get-ShodanDNSResolve
-Install-Module -Name Get-ShodanDNSReverse
-Install-Module -Name Get-VirusIPReport
-Install-Module -Name Get-VirusDomainReport
+# Install-Module -Name Get-ShodanAPIInfo
+# Install-Module -Name Get-ShodanDNSDomain
+# Install-Module -Name Get-ShodanDNSResolve
+# Install-Module -Name Get-ShodanDNSReverse
+# Install-Module -Name Get-VirusIPReport
+# Install-Module -Name Get-VirusDomainReport
 
-Import-Module -Name Get-ShodanDNSDomain
-Import-Module -Name Get-VirusIPReport
-Import-Module -Name Get-VirusDomainReport
-Import-Module -Name Get-ShodanDNSResolve
+# Import-Module -Name Get-ShodanDNSDomain
+# Import-Module -Name Get-VirusIPReport
+# Import-Module -Name Get-VirusDomainReport
+# Import-Module -Name Get-ShodanDNSResolve
 
 function Show-Help {
     $scriptName = $MyInvocation.MyCommand.Name
@@ -281,15 +281,15 @@ if ($inputFile) {
             }
         }
 
-        Get-VirusDomain -api $vtKey -ip $ip
-        
-    # Add more functionality here as needed
-} elseif ($domain) {
+        Get-VirusDomain -vtKey $vtKey -ip $ip
     
-    # Neutrino
-    Write-Host "Checking neutrino domain information"
-    $neutrinoDomain = Check-NeutrinoDomain $domain $neutrinoUser $neutrinoKey
-    $neutrinoDomain | Format-List
+    }
+}  elseif ($domain) {
+    
+    # # Neutrino
+    # Write-Host "Checking neutrino domain information"
+    # $neutrinoDomain = Check-NeutrinoDomain $domain $neutrinoUser $neutrinoKey
+    # $neutrinoDomain | Format-List
 
     # Shodan
     if (!$shodanKey) {
@@ -300,8 +300,7 @@ if ($inputFile) {
     Write-Output "Gathering all subdomains and dns entries for specified domain on Shodan"
     $shodanDNS = Get-ShodanDNSdomain -domain $domain -API $shodanKey  
     $shodanDNS | Format-List
-    $vtDNS = Get-VirusDomainReport -api $vtKey -domain $domain
-}
+    $vtDNS = Get-VirusDomainReport -vtkey $vtKey -domain $domain
 } else {
 function Get-MyIp {
     Invoke-WebRequest "http://ifconfig.me/ip"
