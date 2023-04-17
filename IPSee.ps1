@@ -224,7 +224,7 @@ function Get-ShodanHostnameInfo {
     Get-ShodanDNSReverse -ips $ip -API $shodanKey
 }
 
-function Get-VirusDOmainReport {
+function Get-VirusDomainReport {
     param (
         [Parameter(ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [string]$domain,
@@ -291,6 +291,8 @@ function Get-MyIp {
 
 
 # Resolve Dependencies and Service Keys
+
+# Shodan key check
 if ($Shodan) {
     $modules = @('Get-ShodanDNSResolve', 'Get-ShodanDNSReverse', 'Get-ShodanDNSDomain')
     foreach ($module in $modules) {
@@ -310,6 +312,7 @@ if ($Shodan) {
     }
 }
 
+# VirusTotal key check
 if ($VT) {
     $modules = @('Get-VirusIPReport', 'Get-VirusDomainReport')
     foreach ($module in $modules) {
@@ -328,6 +331,7 @@ if ($VT) {
     }
 }
 
+# Neutrino key check
 if ($Neutrino) {
     if ([string]::IsNullOrEmpty($neutrinoUser)) {
         $neutrinoUser = Read-Host -Prompt "Enter your username"
@@ -338,7 +342,7 @@ if ($Neutrino) {
     }   
 }
 
-
+# Nested Conditionals for target format IP, domain, etc and related functions
 if ($ip) {
     Write-Output "Performing IP-related lookups for IP $ip"
     # IP related logic
@@ -355,11 +359,16 @@ if ($ip) {
         $neutrinoRealtime = Check-NeutrinoRealtime $ip $neutrinoUser $neutrinoKey
         $neutrinoRealtime | Format-Table
     }
-
-    Write-Output "Retrieving IP report from Virtus Total"
-    if ($VT) { Get-VirusIpReport -ip $ip -vtKey $vtKey}
-    Write-Output "Looking up hostnames associated with IP on Shodan"
-    if ($Shodan) { Get-ShodanDNSReverse -ips $ip -API $shodanKey }
+    
+    if ($VT) { 
+        Write-Output "Retrieving IP report from Virtus Total"
+        Get-VirusIpReport -ip $ip -vtKey $vtKey
+    }
+    
+    if ($Shodan) { 
+        Write-Output "Looking up hostnames associated with IP on Shodan"    
+        Get-ShodanDNSReverse -ips $ip -API $shodanKey 
+    }
 
 
 }
@@ -385,8 +394,6 @@ elseif ($domain) {
         $vtDNs | Format-List
     }
 }
-
-
 elseif ($inputFile) {
     Write-Output "Performing input file-related lookups for file $inputFile"
     # Input file related logic
@@ -398,12 +405,30 @@ elseif ($inputFile) {
         $ipInfo = Get-IPInfo $ip
         Write-Host "IP information:"
         $ipInfo | Format-List
-}
+    }
 }
 elseif ($Self) {
     $myip = Get-MyIp
     $myinfo = Get-IPInfo $myip
     Write-Output "Your current public IP:" ($myinfo | Format-List)
+    $ip = $myip
+    if ($Neutrino) {
+        $neutrinoInfo = Check-NeutrinoBlocklist $ip $neutrinoUser $neutrinoKey
+        Write-Host "Neutrino IP blocklist information:"
+        $neutrinoInfo | Format-List
+        $neutrinoRealtime = Check-NeutrinoRealtime $ip $neutrinoUser $neutrinoKey
+        $neutrinoRealtime | Format-Table
+    }
+    
+    if ($VT) { 
+        Write-Output "Retrieving IP report from Virtus Total"
+        Get-VirusIpReport -ip $ip -vtKey $vtKey
+    }
+    
+    if ($Shodan) { 
+        Write-Output "Looking up hostnames associated with $ip on Shodan"    
+        Get-ShodanDNSReverse -ips $ip -API $shodanKey 
+    }
 }
 else {
     Write-Output "No input specified, showing Help menu and current IP information"
