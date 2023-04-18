@@ -20,7 +20,7 @@ param (
     [Parameter(Mandatory=$false)]
     [switch]$Neutrino,
     [Parameter(Mandatory=$false)]
-    [switch]$Self.
+    [switch]$Self,    
     [Parameter(Mandatory=$false)]
     [switch]$Nmap
 )
@@ -63,7 +63,7 @@ SWITCHES
         Perform lookups using the VirusTotal module. Optionally provide a specific IP address or domain name to use for VirusTotal lookups.
 
     -Nmap [<SwitchParameter>]
-        Run an Nmap service scan on all ports on the target using "nmap -Pn -sV -p- $ip" 
+        Run an Nmap service scan on all ports on the target using "nmap -Pn -sV $ip" 
 KEYS
     -ShodanKey <String>
         Specify your Shodan API key.
@@ -165,7 +165,7 @@ function Check-NeutrinoRealtime($ip, $userId, $vtKeyKey) {
 }
 
 function Check-NeutrinoDomain($domain, $userId, $vtKeyKey) {
-    $DomainObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.com/api/domain-lookup?user-id=$userId&api-key=$vtKeyKey&domain=$domain"
+    $DomainObject = Invoke-RestMethod -Method GET -Uri "https://neutrinoapi.com/domain-lookup?user-id=$userId&api-key=$vtKeyKey&domain=$domain"
 
     [PSCustomObject]@{
         valid               =  $DomainObject.valid
@@ -376,7 +376,7 @@ if ($ip) {
 
     if ($Nmap) {
         Write-Output "Performing service scan on $ip"
-        nmap -vv -Pn -sV -p- $ip 
+        nmap -vv -Pn -sV $ip 
     }
 
 
@@ -386,6 +386,9 @@ elseif ($domain) {
     # Domain related logic
      if ($Neutrino) { 
         Write-Host "Checking neutrino domain information"
+        $neutrinoInfo = Check-NeutrinoBlocklist $domain $neutrinoUser $neutrinoKey
+        Write-Host "Neutrino IP blocklist information:"
+        $neutrinoInfo | Format-List
         $neutrinoDomain = Check-NeutrinoDomain $domain $neutrinoUser $neutrinoKey
         $neutrinoDomain | Format-List
         }
@@ -405,7 +408,7 @@ elseif ($domain) {
 
     if ($Nmap) {
         Write-Output "Performing service scan on $domain"
-        nmap -vv -Pn -sV -p- $domain
+        nmap -vv -Pn -sV $domain
     }
 }
 elseif ($inputFile) {
@@ -426,8 +429,9 @@ elseif ($inputFile) {
 
     foreach ($ip in $ips) {
         Write-Host "Perfomring Nmap service scan on $ip.."
-        nmap -Pn -sV -p- $ip
+        nmap -Pn -sV $ip
     }
+  }
 }
 elseif ($Self) {
     $myip = Get-MyIp
