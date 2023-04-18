@@ -20,7 +20,9 @@ param (
     [Parameter(Mandatory=$false)]
     [switch]$Neutrino,
     [Parameter(Mandatory=$false)]
-    [switch]$Self
+    [switch]$Self.
+    [Parameter(Mandatory=$false)]
+    [switch]$Nmap
 )
 
 # Help
@@ -60,6 +62,8 @@ SWITCHES
     -VT  [<SwitchParameter>]
         Perform lookups using the VirusTotal module. Optionally provide a specific IP address or domain name to use for VirusTotal lookups.
 
+    -Nmap [<SwitchParameter>]
+        Run an Nmap service scan on all ports on the target using "nmap -Pn -sV -p- $ip" 
 KEYS
     -ShodanKey <String>
         Specify your Shodan API key.
@@ -370,6 +374,11 @@ if ($ip) {
         Get-ShodanDNSReverse -ips $ip -API $shodanKey 
     }
 
+    if ($Nmap) {
+        Write-Output "Performing service scan on $ip"
+        nmap -vv -Pn -sV -p- $ip 
+    }
+
 
 }
 elseif ($domain) {
@@ -393,6 +402,11 @@ elseif ($domain) {
         $vtDNS = Get-VirusDomainReport -vtkey $vtKey -domain $domain
         $vtDNs | Format-List
     }
+
+    if ($Nmap) {
+        Write-Output "Performing service scan on $domain"
+        nmap -vv -Pn -sV -p- $domain
+    }
 }
 elseif ($inputFile) {
     Write-Output "Performing input file-related lookups for file $inputFile"
@@ -405,6 +419,14 @@ elseif ($inputFile) {
         $ipInfo = Get-IPInfo $ip
         Write-Host "IP information:"
         $ipInfo | Format-List
+    }
+    
+    if ($Nmap) {
+        $ips = Get-Content $inputFile
+
+    foreach ($ip in $ips) {
+        Write-Host "Perfomring Nmap service scan on $ip.."
+        nmap -Pn -sV -p- $ip
     }
 }
 elseif ($Self) {
